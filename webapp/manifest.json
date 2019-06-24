@@ -1,0 +1,40 @@
+{
+    "_version": "1.12.0",
+    "sap.app": {
+        "id": "sap.ui.demo.cooking",
+        "type": "application"
+    },
+    "sap.ui5": {
+        "dependencies": {
+            "minUI5Version": "1.60.0",
+            "libs": {
+                "sap.ui.core": {},
+                "sap.m": {},
+				"sap.ui.layout": {}
+            }
+        },
+        "rootView": {
+            "viewName": "sap.ui.demo.cooking.view.App",
+            "type": "JS",
+            "async": true,
+            "id": "app"
+        },
+        "models": {
+            "i18n": {
+                "type": "sap.ui.model.resource.ResourceModel",
+                "settings": {
+                    "bundleName": "sap.ui.demo.cooking.i18n.i18n"
+                }
+            },
+            "": {
+                "type": "sap.ui.model.json.JSONModel",
+                "uri": "model/sample.json"
+            }
+        },
+        "resources": {
+            "css": [{
+                "uri": "css/styles.css"
+            }]
+        }
+    }
+}
