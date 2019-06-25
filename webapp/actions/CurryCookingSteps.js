@@ -11,7 +11,7 @@ sap.ui.define([
 	function (ManagedObject, jQuery, Toolbar, ToolbarSpacer, Label, Dialog, Button, JSONModel) {
 		"use strict";
 
-		var curryCookingActions = ManagedObject.extend("demo.app.cooking.actions.CurryCookingActions", {
+		var curryCookingActions = ManagedObject.extend("demo.app.cooking.actions.CurryCookingSteps", {
 			metadata: {
 				library: "demo.app.cooking",
 				properties: {
@@ -28,30 +28,20 @@ sap.ui.define([
 		var rootContainer = sap.ui.core.Component.get("container-cooking");
 		curryCookingActions.prototype.rb = rootContainer.getModel("i18n").getResourceBundle();
 		curryCookingActions.prototype.rootDataModel = rootContainer.getModel();
-		curryCookingActions.prototype.cookWithPromises = function () {
-			var that = this;
+		curryCookingActions.prototype.cookTraditionally = function () {
 			performance.clearMarks("begin");
 			performance.mark("begin");
-			function failHandler(errObj) {
-				console.error("Some error occurred: " + errObj);
-			}
-
-			this._washVeggies().then(function (doneObj) {
-				that._cutVeggies().then(function (doneObj) {
-					$.when(that._steamVeggies(), that._precookSpices()).then(function (steamDone, precookSpiceDone) {
-						that._mixAndCook().then(function(){
-							that._garnish().then(function(){
-								console.log("last step done");
-							}), failHandler
-						}), failHandler
-					}), failHandler
-				}), failHandler
-			}), failHandler
+			this._washVeggies();
+			this._cutVeggies();
+			this._steamVeggies();
+			this._precookSpices();
+			this._mixAndCook();
+			this._garnish();
 		};
 
 		curryCookingActions.prototype._washVeggies = function () {
+			var that = this;
 			performance.mark("_washVeggies");
-			var deferred = new $.Deferred(), that = this;
 			var to1 = setTimeout(function () {
 				performance.mark("_washVeggies");
 				var perf = performance.getEntriesByName("_washVeggies");
@@ -61,14 +51,12 @@ sap.ui.define([
 					"absoluteTime": perf[1].startTime - performance.getEntriesByName("begin")[0].startTime
 				});
 				performance.clearMarks("_washVeggies");
-				deferred.resolve();
 				clearTimeout(to1);
 			}, 200);
-			return deferred.promise();
 		};
 		curryCookingActions.prototype._cutVeggies = function () {
 			performance.mark("_cutVeggies");
-			var deferred = new $.Deferred(), that = this;
+			var that = this;
 			var to1 = setTimeout(function () {
 				performance.mark("_cutVeggies");
 				var perf = performance.getEntriesByName("_cutVeggies");
@@ -78,14 +66,13 @@ sap.ui.define([
 					"absoluteTime": perf[1].startTime - performance.getEntriesByName("begin")[0].startTime
 				});
 				performance.clearMarks("_cutVeggies");
-				deferred.resolve();
 				clearTimeout(to1);
 			}, 200);
-			return deferred.promise();
 		};
+
 		curryCookingActions.prototype._steamVeggies = function () {
 			performance.mark("_steamVeggies");
-			var deferred = new $.Deferred(), that = this;
+			var that = this;
 			var to1 = setTimeout(function () {
 				performance.mark("_steamVeggies");
 				var perf = performance.getEntriesByName("_steamVeggies");
@@ -95,14 +82,12 @@ sap.ui.define([
 					"absoluteTime": perf[1].startTime - performance.getEntriesByName("begin")[0].startTime
 				});
 				performance.clearMarks("_steamVeggies");
-				deferred.resolve();
 				clearTimeout(to1);
 			}, 200);
-			return deferred.promise();
 		};
 		curryCookingActions.prototype._precookSpices = function () {
 			performance.mark("_precookSpices");
-			var deferred = new $.Deferred(), that = this;
+			var that = this;
 			var to1 = setTimeout(function () {
 				performance.mark("_precookSpices");
 				var perf = performance.getEntriesByName("_precookSpices");
@@ -112,14 +97,12 @@ sap.ui.define([
 					"absoluteTime": perf[1].startTime - performance.getEntriesByName("begin")[0].startTime
 				});
 				performance.clearMarks("_precookSpices");
-				deferred.resolve();
 				clearTimeout(to1);
 			}, 200);
-			return deferred.promise();
 		};
 		curryCookingActions.prototype._mixAndCook = function () {
 			performance.mark("_mixAndCook");
-			var deferred = new $.Deferred(), that = this;
+			var that = this;
 			var to1 = setTimeout(function () {
 				performance.mark("_mixAndCook");
 				var perf = performance.getEntriesByName("_mixAndCook");
@@ -129,14 +112,12 @@ sap.ui.define([
 					"absoluteTime": perf[1].startTime - performance.getEntriesByName("begin")[0].startTime
 				});
 				performance.clearMarks("_mixAndCook");
-				deferred.resolve();
 				clearTimeout(to1);
 			}, 200);
-			return deferred.promise();
 		};
 		curryCookingActions.prototype._garnish = function () {
 			performance.mark("_garnish");
-			var deferred = new $.Deferred(), that = this;
+			var that = this;
 			var to1 = setTimeout(function () {
 				performance.mark("_garnish");
 				var perf = performance.getEntriesByName("_garnish");
@@ -146,10 +127,8 @@ sap.ui.define([
 					"absoluteTime": perf[1].startTime - performance.getEntriesByName("begin")[0].startTime
 				});
 				performance.clearMarks("_garnish");
-				deferred.resolve();
 				clearTimeout(to1);
 			}, 200);
-			return deferred.promise();
 		};
 	}
 );

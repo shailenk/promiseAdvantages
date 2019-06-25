@@ -1,37 +1,56 @@
-sap.ui.jsview("sap.ui.demo.cooking.view.App", {
+$.sap.require("demo.app.cooking.actions.CurryCookingActions",
+	"demo.app.cooking.actions.CurryCookingSteps");
+sap.ui.jsview("demo.app.cooking.view.App", {
     getControllerName: function() {
         "use strict";
-        return "sap.ui.demo.cooking.controller.App";
+        return "demo.app.cooking.controller.App";
     },
     createContent: function(oController) {
         "use strict";
         var view = this;
         this.rb = this.getModel("i18n").getResourceBundle();
+        this._promiseCookingActions = new demo.app.cooking.actions.CurryCookingActions();
+		this._traditionalCookingSteps = new demo.app.cooking.actions.CurryCookingSteps();
         function traditionalFuncitonHandler(){
-        	var modelData = view.getModel().getData();
-        	var traditionalDataLog = modelData.traditionalLogs;
-        	if (!traditionalDataLog) {
-				traditionalDataLog = [];
-				modelData["traditionalLogs"] = traditionalDataLog;
+			if(!view._traditionalHandlerAttached){
+				view._traditionalHandlerAttached = true;
+				view._traditionalCookingSteps.attachStepProcessed(function(oEvent){
+					var modelData = view.getModel().getData();
+					var traditionalLogs = modelData.traditionalLogs;
+					if (!traditionalLogs) {
+						traditionalLogs = [];
+						modelData["traditionalLogs"] = traditionalLogs;
+					}
+					traditionalLogs.push({"name": oEvent.getParameter("step"),"description":"TIme taken to execute: "+
+							oEvent.getParameter("duration")+" and ended at: "+oEvent.getParameter("absoluteTime")});
+					view.getModel().setData(modelData);
+				});
 			}
-			traditionalDataLog.push({"name": "traditional handler","description":"traditional handler"});
-			view.getModel().setData(modelData);
+			view._traditionalCookingSteps.cookTraditionally();
 		}
+
 		function promiseFuncitonsHandler(){
-			var modelData = view.getModel().getData();
-			var promiseDataLogs = modelData.promiseLogs;
-			if (!promiseDataLogs) {
-				promiseDataLogs = [];
-				modelData["promiseLogs"] = promiseDataLogs;
+			if(!view._promiseHandlerAttached){
+				view._promiseHandlerAttached = true;
+				view._promiseCookingActions.attachStepProcessed(function(oEvent){
+					var modelData = view.getModel().getData();
+					var promiseDataLogs = modelData.promiseLogs;
+					if (!promiseDataLogs) {
+						promiseDataLogs = [];
+						modelData["promiseLogs"] = promiseDataLogs;
+					}
+					promiseDataLogs.push({"name": oEvent.getParameter("step"),"description":"TIme taken to execute: "+
+							oEvent.getParameter("duration")+" and ended at: "+oEvent.getParameter("absoluteTime")});
+					view.getModel().setData(modelData);
+				});
 			}
-			promiseDataLogs.push({"name": "promise handler","description":"promise handler"});
-			view.getModel().setData(modelData);
+			view._promiseCookingActions.cookWithPromises();
 		}
 		this.traditionalSplitPane = new sap.ui.layout.SplitPane({
-			content: this.createCookingLog("Cooking functional in traditional way", traditionalFuncitonHandler, "traditionalLogs")
+			content: this.createCookingLog(this.rb.getText("cooking.way.traditional"), traditionalFuncitonHandler, "traditionalLogs")
 		});
 		this.promiseSplitPane = new sap.ui.layout.SplitPane({
-			content: this.createCookingLog("Cooking functional with Promises", promiseFuncitonsHandler, "promiseLogs")
+			content: this.createCookingLog(this.rb.getText("cooking.way.promise"), promiseFuncitonsHandler, "promiseLogs")
 		});
 		var panelContainer = new sap.ui.layout.PaneContainer({
 			panes: [this.traditionalSplitPane, this.promiseSplitPane]
@@ -48,9 +67,22 @@ sap.ui.jsview("sap.ui.demo.cooking.view.App", {
     },
 
 	createCookingLog: function(oHeaderTxt, btnPressListener, modelPath){
+    	var that = this;
     	var cookButton = new sap.m.Button({
-			text: "Start cooking",
+			text: this.rb.getText("action.start.cooking"),
 			press: btnPressListener
+		});
+    	var resetLogs = new sap.m.Button({
+			text: this.rb.getText("action.reset.logs"),
+			press: function(){
+				var logData = that.getModel().getData();
+				delete logData[modelPath];
+				that.getModel().setData(logData);
+			}
+		});
+    	var buttonBox = new sap.m.HBox({
+			items: [cookButton, resetLogs],
+			justifyContent: sap.m.FlexJustifyContent.SpaceBetween
 		});
 		var logListItem = new sap.m.StandardListItem({
 			title: "{name}",
@@ -59,7 +91,7 @@ sap.ui.jsview("sap.ui.demo.cooking.view.App", {
 			iconInset: true
 		});
     	var logList = new sap.m.List({
-			headerText: "Cooking logs",
+			headerText: this.rb.getText("list.header.cooking"),
 			items: {
 				path: '/'+modelPath,
 				template: logListItem
@@ -67,7 +99,7 @@ sap.ui.jsview("sap.ui.demo.cooking.view.App", {
 		});
     	var panel = new sap.m.Panel({
 			headerText: oHeaderTxt,
-			content: [cookButton, logList]
+			content: [buttonBox, logList]
 		});
 
     	return panel;

@@ -1,7 +1,7 @@
 {
     "_version": "1.12.0",
     "sap.app": {
-        "id": "sap.ui.demo.cooking",
+        "id": "demo.app.cooking",
         "type": "application"
     },
     "sap.ui5": {
@@ -14,7 +14,7 @@
             }
         },
         "rootView": {
-            "viewName": "sap.ui.demo.cooking.view.App",
+            "viewName": "demo.app.cooking.view.App",
             "type": "JS",
             "async": true,
             "id": "app"
@@ -23,7 +23,7 @@
             "i18n": {
                 "type": "sap.ui.model.resource.ResourceModel",
                 "settings": {
-                    "bundleName": "sap.ui.demo.cooking.i18n.i18n"
+                    "bundleName": "demo.app.cooking.i18n.i18n"
                 }
             },
             "": {

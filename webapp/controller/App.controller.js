@@ -2,5 +2,5 @@ sap.ui.define([
 	"sap/ui/core/mvc/Controller"
 ], function(Controller) {
 	"use strict";
-	return Controller.extend("sap.ui.demo.cooking.controller.App");
+	return Controller.extend("demo.app.cooking.controller.App");
 });
