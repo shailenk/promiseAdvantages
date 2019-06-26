@@ -11,7 +11,7 @@ sap.ui.define([
 	function (ManagedObject, jQuery, Toolbar, ToolbarSpacer, Label, Dialog, Button, JSONModel) {
 		"use strict";
 
-		var curryCookingActions = ManagedObject.extend("demo.app.cooking.actions.CurryCookingSteps", {
+		var curryCookingSteps = ManagedObject.extend("demo.app.cooking.actions.CurryCookingSteps", {
 			metadata: {
 				library: "demo.app.cooking",
 				properties: {
@@ -26,9 +26,26 @@ sap.ui.define([
 		});
 
 		var rootContainer = sap.ui.core.Component.get("container-cooking");
-		curryCookingActions.prototype.rb = rootContainer.getModel("i18n").getResourceBundle();
-		curryCookingActions.prototype.rootDataModel = rootContainer.getModel();
-		curryCookingActions.prototype.cookTraditionally = function () {
+		curryCookingSteps.prototype.rb = rootContainer.getModel("i18n").getResourceBundle();
+		curryCookingSteps.prototype.rootDataModel = rootContainer.getModel();
+		curryCookingSteps.prototype.cookTraditionallyInSequence = function () {
+			performance.clearMarks("begin");
+			performance.mark("begin");
+			this._currIndex = 0;
+			var that = this;
+			if(!this._attachedStepListener) {
+				this.attachStepProcessed(function () {
+					if(that._currIndex < that.stepExecutionSequence.length - 1){
+						that._currIndex = that._currIndex + 1;
+						that.stepExecutionSequence[that._currIndex].call(this);
+					}
+				});
+				this._attachedStepListener = true;
+			}
+			this.stepExecutionSequence[this._currIndex].call(this);
+		};
+
+		curryCookingSteps.prototype.cookTraditionally = function () {
 			performance.clearMarks("begin");
 			performance.mark("begin");
 			this._washVeggies();
@@ -39,7 +56,7 @@ sap.ui.define([
 			this._garnish();
 		};
 
-		curryCookingActions.prototype._washVeggies = function () {
+		curryCookingSteps.prototype._washVeggies = function () {
 			var that = this;
 			performance.mark("_washVeggies");
 			var to1 = setTimeout(function () {
@@ -54,7 +71,7 @@ sap.ui.define([
 				clearTimeout(to1);
 			}, 200);
 		};
-		curryCookingActions.prototype._cutVeggies = function () {
+		curryCookingSteps.prototype._cutVeggies = function () {
 			performance.mark("_cutVeggies");
 			var that = this;
 			var to1 = setTimeout(function () {
@@ -70,7 +87,7 @@ sap.ui.define([
 			}, 200);
 		};
 
-		curryCookingActions.prototype._steamVeggies = function () {
+		curryCookingSteps.prototype._steamVeggies = function () {
 			performance.mark("_steamVeggies");
 			var that = this;
 			var to1 = setTimeout(function () {
@@ -85,7 +102,7 @@ sap.ui.define([
 				clearTimeout(to1);
 			}, 200);
 		};
-		curryCookingActions.prototype._precookSpices = function () {
+		curryCookingSteps.prototype._precookSpices = function () {
 			performance.mark("_precookSpices");
 			var that = this;
 			var to1 = setTimeout(function () {
@@ -100,7 +117,7 @@ sap.ui.define([
 				clearTimeout(to1);
 			}, 200);
 		};
-		curryCookingActions.prototype._mixAndCook = function () {
+		curryCookingSteps.prototype._mixAndCook = function () {
 			performance.mark("_mixAndCook");
 			var that = this;
 			var to1 = setTimeout(function () {
@@ -115,7 +132,7 @@ sap.ui.define([
 				clearTimeout(to1);
 			}, 200);
 		};
-		curryCookingActions.prototype._garnish = function () {
+		curryCookingSteps.prototype._garnish = function () {
 			performance.mark("_garnish");
 			var that = this;
 			var to1 = setTimeout(function () {
@@ -130,5 +147,12 @@ sap.ui.define([
 				clearTimeout(to1);
 			}, 200);
 		};
+		curryCookingSteps.prototype.stepExecutionSequence = [curryCookingSteps.prototype._washVeggies,
+			curryCookingSteps.prototype._cutVeggies,
+			curryCookingSteps.prototype._steamVeggies,
+			curryCookingSteps.prototype._precookSpices,
+			curryCookingSteps.prototype._mixAndCook,
+			curryCookingSteps.prototype._garnish
+		];
 	}
 );

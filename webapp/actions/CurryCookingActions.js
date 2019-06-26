@@ -1,14 +1,11 @@
 sap.ui.define([
 		'sap/ui/base/ManagedObject',
 		"sap/ui/thirdparty/jquery",
-		"sap/m/Toolbar",
-		"sap/m/ToolbarSpacer",
-		"sap/m/Label",
-		"sap/m/Dialog",
-		"sap/m/Button",
+		"sap/m/MessageBox",
+		"sap/m/MessageToast",
 		"sap/ui/model/json/JSONModel"
 	],
-	function (ManagedObject, jQuery, Toolbar, ToolbarSpacer, Label, Dialog, Button, JSONModel) {
+	function (ManagedObject, jQuery, MessageBox, MessageToast, JSONModel) {
 		"use strict";
 
 		var curryCookingActions = ManagedObject.extend("demo.app.cooking.actions.CurryCookingActions", {
@@ -47,6 +44,36 @@ sap.ui.define([
 					}), failHandler
 				}), failHandler
 			}), failHandler
+		};
+		curryCookingActions.prototype.cookWithPromisesWithPrompt = function () {
+			var that = this;
+			performance.clearMarks("begin");
+			performance.mark("begin");
+			function failHandler(errObj) {
+				console.error("Some error occurred: " + errObj);
+			}
+
+			this._washVeggies().then(function (doneObj) {
+				that._cutVeggies().then(function (doneObj) {
+					$.when(that._steamVeggies(), that._precookSpices()).then(function (steamDone, precookSpiceDone) {
+						that._mixAndCook().then(function(){
+							that._garnishWithConfirmation().then(function(){
+								console.log("last step done");
+							}), failHandler
+						}), failHandler
+					}), failHandler
+				}), failHandler
+			}), failHandler
+		};
+
+		curryCookingActions.prototype.cookAllAtOnce = function () {
+			performance.clearMarks("begin");
+			performance.mark("begin");
+
+			$.when(this._washVeggies(), this._cutVeggies(), this._steamVeggies(), this._precookSpices(), this._mixAndCook(), this._garnish())
+				.then(function (oWash, oCut, oSteam, oPreCookSpices, oMixAndCook, oGarnish) {
+					console.log("All done at once");
+				});
 		};
 
 		curryCookingActions.prototype._washVeggies = function () {
@@ -147,6 +174,39 @@ sap.ui.define([
 				});
 				performance.clearMarks("_garnish");
 				deferred.resolve();
+				clearTimeout(to1);
+			}, 200);
+			return deferred.promise();
+		};
+		curryCookingActions.prototype._garnishWithConfirmation = function () {
+			performance.mark("_garnish");
+			var deferred = new $.Deferred(), that = this;
+			function completeGarnish(){
+				MessageBox.confirm(
+					that.rb.getText("message.garnish.confirm.txt"),{
+						onClose: function(sAction){
+							if(sAction === MessageBox.Action.OK){
+								performance.mark("_garnish");
+								var perf = performance.getEntriesByName("_garnish");
+								that.fireStepProcessed({
+									"step": that.rb.getText("step.processed.garnish"),
+									"duration": perf[1].startTime - perf[0].startTime,
+									"absoluteTime": perf[1].startTime - performance.getEntriesByName("begin")[0].startTime
+								});
+								performance.clearMarks("_garnish");
+								deferred.resolve();
+							}else{
+								var innerTo1 = setTimeout(function(){
+									completeGarnish();
+									clearTimeout(innerTo1);
+								}, 200);
+							}
+						}
+					}
+				);
+			}
+			var to1 = setTimeout(function () {
+				completeGarnish();
 				clearTimeout(to1);
 			}, 200);
 			return deferred.promise();

@@ -7,50 +7,21 @@ sap.ui.jsview("demo.app.cooking.view.App", {
     },
     createContent: function(oController) {
         "use strict";
-        var view = this;
         this.rb = this.getModel("i18n").getResourceBundle();
+        this._traditioanlCookingModelPath = "traditionalLogs";
+		this._promiseCookingModelPath = "promiseLogs";
+		this._RbType_traditioanl_SimpleFnInvoke = "simpleFnInvoke";
+		this._RbType_traditioanl_eventFnInvoke = "eventFnInvoke";
+		this._RbType_promise__SimpleFnInvoke = "simplePromiseInvoke";
+		this._RbType_promise_promptFnInvoke = "promptPromiseInvoke";
         this._promiseCookingActions = new demo.app.cooking.actions.CurryCookingActions();
 		this._traditionalCookingSteps = new demo.app.cooking.actions.CurryCookingSteps();
-        function traditionalFuncitonHandler(){
-			if(!view._traditionalHandlerAttached){
-				view._traditionalHandlerAttached = true;
-				view._traditionalCookingSteps.attachStepProcessed(function(oEvent){
-					var modelData = view.getModel().getData();
-					var traditionalLogs = modelData.traditionalLogs;
-					if (!traditionalLogs) {
-						traditionalLogs = [];
-						modelData["traditionalLogs"] = traditionalLogs;
-					}
-					traditionalLogs.push({"name": oEvent.getParameter("step"),"description":"TIme taken to execute: "+
-							oEvent.getParameter("duration")+" and ended at: "+oEvent.getParameter("absoluteTime")});
-					view.getModel().setData(modelData);
-				});
-			}
-			view._traditionalCookingSteps.cookTraditionally();
-		}
 
-		function promiseFuncitonsHandler(){
-			if(!view._promiseHandlerAttached){
-				view._promiseHandlerAttached = true;
-				view._promiseCookingActions.attachStepProcessed(function(oEvent){
-					var modelData = view.getModel().getData();
-					var promiseDataLogs = modelData.promiseLogs;
-					if (!promiseDataLogs) {
-						promiseDataLogs = [];
-						modelData["promiseLogs"] = promiseDataLogs;
-					}
-					promiseDataLogs.push({"name": oEvent.getParameter("step"),"description":"TIme taken to execute: "+
-							oEvent.getParameter("duration")+" and ended at: "+oEvent.getParameter("absoluteTime")});
-					view.getModel().setData(modelData);
-				});
-			}
-			view._promiseCookingActions.cookWithPromises();
-		}
 		this.traditionalSplitPane = new sap.ui.layout.SplitPane({
-			content: this.createCookingLog(this.rb.getText("cooking.way.traditional"), traditionalFuncitonHandler, "traditionalLogs")
+			content: this.createCookingLog(this.rb.getText("cooking.way.traditional"), this._createTraditionalCookingHeader(), this._traditioanlCookingModelPath)
 		});
 		this.promiseSplitPane = new sap.ui.layout.SplitPane({
-			content: this.createCookingLog(this.rb.getText("cooking.way.promise"), promiseFuncitonsHandler, "promiseLogs")
+			content: this.createCookingLog(this.rb.getText("cooking.way.promise"), this._createPromiseCookingHeader(), this._promiseCookingModelPath)
 		});
 		var panelContainer = new sap.ui.layout.PaneContainer({
 			panes: [this.traditionalSplitPane, this.promiseSplitPane]
@@ -66,25 +37,8 @@ sap.ui.jsview("demo.app.cooking.view.App", {
         return shell;
     },
 
-	createCookingLog: function(oHeaderTxt, btnPressListener, modelPath){
-    	var that = this;
-    	var cookButton = new sap.m.Button({
-			text: this.rb.getText("action.start.cooking"),
-			press: btnPressListener
-		});
-    	var resetLogs = new sap.m.Button({
-			text: this.rb.getText("action.reset.logs"),
-			press: function(){
-				var logData = that.getModel().getData();
-				delete logData[modelPath];
-				that.getModel().setData(logData);
-			}
-		});
-    	var buttonBox = new sap.m.HBox({
-			items: [cookButton, resetLogs],
-			justifyContent: sap.m.FlexJustifyContent.SpaceBetween
-		});
-		var logListItem = new sap.m.StandardListItem({
+	createCookingLog: function(oHeaderTxt, headerContent, modelPath){
+    	var logListItem = new sap.m.StandardListItem({
 			title: "{name}",
 			description: "{description}",
 			iconDensityAware: false,
@@ -99,9 +53,147 @@ sap.ui.jsview("demo.app.cooking.view.App", {
 		});
     	var panel = new sap.m.Panel({
 			headerText: oHeaderTxt,
-			content: [buttonBox, logList]
+			content: [headerContent, logList]
 		});
 
     	return panel;
 	},
+
+	traditionalFuncitonHandler: function(){
+    	var view = this;
+		if(!this._traditionalHandlerAttached){
+			this._traditionalHandlerAttached = true;
+			this._traditionalCookingSteps.attachStepProcessed(function(oEvent){
+				var modelData = view.getModel().getData();
+				var traditionalLogs = modelData.traditionalLogs;
+				if (!traditionalLogs) {
+					traditionalLogs = [];
+					modelData[view._traditioanlCookingModelPath] = traditionalLogs;
+				}
+				traditionalLogs.push({"name": oEvent.getParameter("step"),"description":this.rb.getText("performance.log.text",
+						[oEvent.getParameter("duration"), oEvent.getParameter("absoluteTime")])});
+				view.getModel().setData(modelData);
+			});
+		}
+		if(this._selectedTraditionalOption === this._RbType_traditioanl_eventFnInvoke) {
+			view._traditionalCookingSteps.cookTraditionallyInSequence();
+		}else{
+			this._traditionalCookingSteps.cookTraditionally();
+		}
+	},
+
+	promiseFuncitonsHandler: function(){
+    	var view = this;
+		if(!this._promiseHandlerAttached){
+			this._promiseHandlerAttached = true;
+			this._promiseCookingActions.attachStepProcessed(function(oEvent){
+				var modelData = view.getModel().getData();
+				var promiseDataLogs = modelData.promiseLogs;
+				if (!promiseDataLogs) {
+					promiseDataLogs = [];
+					modelData[view._promiseCookingModelPath] = promiseDataLogs;
+				}
+				promiseDataLogs.push({"name": oEvent.getParameter("step"),"description":this.rb.getText("performance.log.text",
+						[oEvent.getParameter("duration"), oEvent.getParameter("absoluteTime")])});
+				view.getModel().setData(modelData);
+			});
+		}
+		if(this._selectedPromiseOption === this._RbType_promise_promptFnInvoke){
+			this._promiseCookingActions.cookWithPromisesWithPrompt();
+		}else{
+			this._promiseCookingActions.cookWithPromises();
+		}
+	},
+
+	_createTraditionalCookingHeader: function(){
+    	function selectHandler(oEvent){
+			this._selectedTraditionalOption = oEvent.getSource().getCustomData()[0].getKey();
+			this.resetModelLogs(this._traditioanlCookingModelPath);
+		}
+		var vBox = new sap.m.VBox({
+			items: [
+				new sap.m.Button({
+					text: this.rb.getText("action.start.cooking"),
+					press: [this.traditionalFuncitonHandler, this]
+				}),
+				new sap.m.RadioButton({
+					groupName:'traditionalOptions',
+					selected: true,
+					text: 'Cook by simply invoking functions',
+					customData: [new sap.ui.core.CustomData({key: this._RbType_traditioanl_SimpleFnInvoke})],
+					select: [selectHandler, this]
+				}),
+				new sap.m.RadioButton({
+					groupName:'traditionalOptions',
+					selected: false,
+					text: 'Cook by maintaining the flow',
+					customData: [new sap.ui.core.CustomData({key: this._RbType_traditioanl_eventFnInvoke})],
+					select: [selectHandler, this]
+				})
+			]
+		});
+
+		var resetLogs = new sap.m.Button({
+			text: this.rb.getText("action.reset.logs"),
+			press: function(){
+				this.resetModelLogs(this._traditioanlCookingModelPath);
+			}.bind(this)
+		});
+
+		var buttonBox = new sap.m.HBox({
+			items: [vBox, resetLogs],
+			justifyContent: sap.m.FlexJustifyContent.SpaceBetween
+		});
+
+		return buttonBox;
+	},
+
+	_createPromiseCookingHeader: function(){
+		function selectHandler(oEvent){
+			this._selectedPromiseOption = oEvent.getSource().getCustomData()[0].getKey();
+			this.resetModelLogs(this._promiseCookingModelPath);
+		}
+		var vBox = new sap.m.VBox({
+			items: [
+				new sap.m.Button({
+					text: this.rb.getText("action.start.cooking"),
+					press: [this.promiseFuncitonsHandler, this]
+				}),
+				new sap.m.RadioButton({
+					groupName:'promiseOptions',
+					selected: true,
+					text: 'Normal promise based cooking',
+					customData: [new sap.ui.core.CustomData({key: this._RbType_promise__SimpleFnInvoke})],
+					select: [selectHandler, this]
+				}),
+				new sap.m.RadioButton({
+					groupName:'promiseOptions',
+					selected: false,
+					text: 'Version 2 of promise cooking, add garnish option',
+					customData: [new sap.ui.core.CustomData({key: this._RbType_promise_promptFnInvoke})],
+					select: [selectHandler, this]
+				})
+			]
+		});
+
+		var resetLogs = new sap.m.Button({
+			text: this.rb.getText("action.reset.logs"),
+			press: function(){
+				this.resetModelLogs(this._promiseCookingModelPath);
+			}.bind(this)
+		});
+
+		var buttonBox = new sap.m.HBox({
+			items: [vBox, resetLogs],
+			justifyContent: sap.m.FlexJustifyContent.SpaceBetween
+		});
+
+		return buttonBox;
+	},
+
+	resetModelLogs: function(modelPath){
+		var logData = this.getModel().getData();
+		delete logData[modelPath];
+		this.getModel().setData(logData);
+	}
 });
