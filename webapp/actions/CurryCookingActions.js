@@ -26,11 +26,12 @@ sap.ui.define([
 		curryCookingActions.prototype.rb = rootContainer.getModel("i18n").getResourceBundle();
 		curryCookingActions.prototype.rootDataModel = rootContainer.getModel();
 		curryCookingActions.prototype.cookWithPromises = function () {
-			var that = this;
+			var that = this, deferred = new $.Deferred();
 			performance.clearMarks("begin");
 			performance.mark("begin");
 			function failHandler(errObj) {
 				console.error("Some error occurred: " + errObj);
+				deferred.reject("Some error occurred: " + errObj);
 			}
 
 			this._washVeggies().then(function (doneObj) {
@@ -39,18 +40,21 @@ sap.ui.define([
 						that._mixAndCook().then(function(){
 							that._garnish().then(function(){
 								console.log("last step done");
-							}), failHandler
-						}), failHandler
-					}), failHandler
-				}), failHandler
-			}), failHandler
+								deferred.resolve("last step done");
+							}, failHandler)
+						}, failHandler)
+					}, failHandler)
+				}, failHandler)
+			}, failHandler);
+			return deferred.promise();
 		};
 		curryCookingActions.prototype.cookWithPromisesWithPrompt = function () {
-			var that = this;
+			var that = this, deferred = new $.Deferred();
 			performance.clearMarks("begin");
 			performance.mark("begin");
 			function failHandler(errObj) {
 				console.error("Some error occurred: " + errObj);
+				deferred.reject("Some error occurred: " + errObj);
 			}
 
 			this._washVeggies().then(function (doneObj) {
@@ -59,11 +63,46 @@ sap.ui.define([
 						that._mixAndCook().then(function(){
 							that._garnishWithConfirmation().then(function(){
 								console.log("last step done");
-							}), failHandler
-						}), failHandler
-					}), failHandler
-				}), failHandler
-			}), failHandler
+								deferred.resolve("last step done");
+							}, failHandler)
+						}, failHandler)
+					}, failHandler)
+				}, failHandler)
+			}, failHandler);
+			return deferred.promise();
+		};
+
+		curryCookingActions.prototype.cookWithPromisesWithRejectionPrompt = function () {
+			var that = this, deferred = new $.Deferred();
+			performance.clearMarks("begin");
+			performance.mark("begin");
+			function failHandler(errObj) {
+				console.error("Some error occurred: " + errObj);
+				deferred.reject("Some error occurred: " + errObj);
+			}
+
+			this._washVeggies().then(function (doneObj) {
+				that._cutVeggies().then(function (doneObj) {
+					$.when(that._steamVeggies(), that._precookSpices()).then(function (steamDone, precookSpiceDone) {
+						that._mixAndCook().then(function(){
+							that._garnishWithConfirmation().then(function(){
+								MessageBox.confirm(
+									that.rb.getText("message.garnish.confirmOrReject.txt"),{
+										onClose: function(sAction){
+											if(sAction === MessageBox.Action.OK){
+												deferred.resolve("last step done");
+											}else{
+												deferred.reject("failed");
+											}
+										}
+									}
+								);
+							}, failHandler)
+						}, failHandler)
+					}, failHandler)
+				}, failHandler)
+			}, failHandler);
+			return deferred.promise();
 		};
 
 		curryCookingActions.prototype.cookAllAtOnce = function () {

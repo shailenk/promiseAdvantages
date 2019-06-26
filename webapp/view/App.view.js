@@ -12,8 +12,9 @@ sap.ui.jsview("demo.app.cooking.view.App", {
 		this._promiseCookingModelPath = "promiseLogs";
 		this._RbType_traditioanl_SimpleFnInvoke = "simpleFnInvoke";
 		this._RbType_traditioanl_eventFnInvoke = "eventFnInvoke";
-		this._RbType_promise__SimpleFnInvoke = "simplePromiseInvoke";
+		this._RbType_promise_SimpleFnInvoke = "simplePromiseInvoke";
 		this._RbType_promise_promptFnInvoke = "promptPromiseInvoke";
+		this._RbType_promise_promptFnReject = "promptPromiseReject";
         this._promiseCookingActions = new demo.app.cooking.actions.CurryCookingActions();
 		this._traditionalCookingSteps = new demo.app.cooking.actions.CurryCookingSteps();
 
@@ -100,6 +101,16 @@ sap.ui.jsview("demo.app.cooking.view.App", {
 		}
 		if(this._selectedPromiseOption === this._RbType_promise_promptFnInvoke){
 			this._promiseCookingActions.cookWithPromisesWithPrompt();
+		}else if(this._selectedPromiseOption === this._RbType_promise_promptFnReject){
+			this._promiseCookingActions.cookWithPromisesWithRejectionPrompt().then(function(){}, function(error){
+					sap.m.MessageBox.information(
+						view.rb.getText("message.cookingNotAccepted.clear.txt"),{
+							onClose: function(){
+								view.resetModelLogs(view._promiseCookingModelPath);
+							}
+						}
+					);
+				});
 		}else{
 			this._promiseCookingActions.cookWithPromises();
 		}
@@ -163,7 +174,7 @@ sap.ui.jsview("demo.app.cooking.view.App", {
 					groupName:'promiseOptions',
 					selected: true,
 					text: 'Normal promise based cooking',
-					customData: [new sap.ui.core.CustomData({key: this._RbType_promise__SimpleFnInvoke})],
+					customData: [new sap.ui.core.CustomData({key: this._RbType_promise_SimpleFnInvoke})],
 					select: [selectHandler, this]
 				}),
 				new sap.m.RadioButton({
@@ -171,6 +182,13 @@ sap.ui.jsview("demo.app.cooking.view.App", {
 					selected: false,
 					text: 'Version 2 of promise cooking, add garnish option',
 					customData: [new sap.ui.core.CustomData({key: this._RbType_promise_promptFnInvoke})],
+					select: [selectHandler, this]
+				}),
+				new sap.m.RadioButton({
+					groupName:'promiseOptions',
+					selected: false,
+					text: 'Sample show how the whole transaction can be rolled back',
+					customData: [new sap.ui.core.CustomData({key: this._RbType_promise_promptFnReject})],
 					select: [selectHandler, this]
 				})
 			]
